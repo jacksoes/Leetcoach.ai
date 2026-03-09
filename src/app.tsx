@@ -6,6 +6,10 @@ import { problemSlug } from "./content/content"
 export function App() {
   const [open, setOpen] = useState(false)
 
+  function requestCode() {
+  window.postMessage({ type: "GET_LEETCODE_CODE" }, "*")
+}
+
   if (!open) {
     return (
       <div className="coach-bubble" onClick={() => setOpen(true)}>
@@ -34,7 +38,7 @@ export function App() {
           placeholder="Ask your AI coach for a hint..."
         />
 
-        <button className="coach-voice">
+        <button onClick={requestCode} className="coach-voice">
           🎤 Speak
         </button>
       </div>

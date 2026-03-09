@@ -2,6 +2,7 @@ import { render } from "preact"
 import { App } from "../app"
 import css from "./content.css?inline"
 
+
 const host = document.createElement("div")
 host.id = "leetcode-overlay-host"
 
@@ -26,11 +27,12 @@ script.src = chrome.runtime.getURL("dist/pageScript.js")
 script.onload = () => script.remove()
 document.documentElement.appendChild(script)
 
-// listen for code from page
+
 window.addEventListener("message", (event) => {
-  if (event.data.type === "LEETCODE_CODE") {
-    console.log("User code:", event.data.code)
-  }
+  if (event.source !== window) return
+  if (!event.data || event.data.type !== "LEETCODE_CODE") return
+
+  console.log("User code:", event.data.code)
 })
 
 render(<App />, root)

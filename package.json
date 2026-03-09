@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@codingame/monaco-vscode-api": "^27.0.0",
     "preact": "^10.27.2"
   },
   "devDependencies": {
