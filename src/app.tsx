@@ -1,14 +1,17 @@
 import { useState } from "preact/hooks"
+import CoachSelector from "./components/CoachSelector"
 import "./content/content.css"
 
 import { problemSlug } from "./content/content"
 
 export function App() {
   const [open, setOpen] = useState(false)
+  const [selectingCoach, setSelectingCoach] = useState(false)
+  const [coach, setCoach] = useState("default")
 
   function requestCode() {
-  window.postMessage({ type: "GET_LEETCODE_CODE" }, "*")
-}
+    window.postMessage({ type: "GET_LEETCODE_CODE" }, "*")
+  }
 
   if (!open) {
     return (
@@ -21,7 +24,9 @@ export function App() {
   return (
     <div className="coach-overlay">
       <div className="coach-header">
-        <div className="coach-avatar">🤖</div>
+        <div className="coach-avatar"
+          onClick={() => setSelectingCoach(true)}
+        >🤖</div>
         <div className="coach-title">LeetCoach {problemSlug}</div>
 
         <button
@@ -31,6 +36,15 @@ export function App() {
           ✕
         </button>
       </div>
+
+       {selectingCoach ? (
+    <CoachSelector 
+      onSelect={(c) => {
+        setCoach(c)
+        setSelectingCoach(false)
+      }}
+    />
+      ) : 
 
       <div className="coach-body">
         <textarea
@@ -42,6 +56,7 @@ export function App() {
           🎤 Speak
         </button>
       </div>
+  }
     </div>
   )
 }
