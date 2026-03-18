@@ -101,3 +101,24 @@
   color: white;
   cursor: pointer;
 }
+
+
+.coach-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  border-radius: 8px;
+}
+
+.coach-option:hover {
+  background: #f5f5f5;
+  cursor: pointer;
+}
+
+.coach-avatar {
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

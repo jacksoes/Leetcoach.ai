@@ -1,13 +1,23 @@
-import { useState } from "preact/hooks"
+import { useEffect, useState } from "preact/hooks"
 import CoachSelector from "./components/CoachSelector"
 import "./content/content.css"
-
+import { COACHES } from "./models/coaches"
 import { problemSlug } from "./content/content"
 
 export function App() {
   const [open, setOpen] = useState(false)
   const [selectingCoach, setSelectingCoach] = useState(false)
-  const [coach, setCoach] = useState("default")
+
+
+  const [coach, setCoach] = useState(() => {
+    const savedId = localStorage.getItem("leetcoach")
+    return COACHES.find(c => c.id === savedId) || COACHES[0]
+  })
+
+
+  useEffect(() => {
+    localStorage.setItem("leetcoach", coach.id)
+  }, [coach])
 
   function requestCode() {
     window.postMessage({ type: "GET_LEETCODE_CODE" }, "*")
@@ -16,7 +26,7 @@ export function App() {
   if (!open) {
     return (
       <div className="coach-bubble" onClick={() => setOpen(true)}>
-        🤖
+        {coach.avatar}
       </div>
     )
   }
@@ -26,7 +36,7 @@ export function App() {
       <div className="coach-header">
         <div className="coach-avatar"
           onClick={() => setSelectingCoach(true)}
-        >🤖</div>
+        >{coach.avatar}</div>
         <div className="coach-title">LeetCoach {problemSlug}</div>
 
         <button
@@ -37,26 +47,26 @@ export function App() {
         </button>
       </div>
 
-       {selectingCoach ? (
-    <CoachSelector 
-      onSelect={(c) => {
-        setCoach(c)
-        setSelectingCoach(false)
-      }}
-    />
-      ) : 
-
-      <div className="coach-body">
-        <textarea
-          className="coach-input"
-          placeholder="Ask your AI coach for a hint..."
+      {selectingCoach ? (
+        <CoachSelector
+          onSelect={(c) => {
+            setCoach(c)
+            setSelectingCoach(false)
+          }}
         />
+      ) :
 
-        <button onClick={requestCode} className="coach-voice">
-          🎤 Speak
-        </button>
-      </div>
-  }
+        <div className="coach-body">
+          <textarea
+            className="coach-input"
+            placeholder="Ask your AI coach for a hint..."
+          />
+
+          <button onClick={requestCode} className="coach-voice">
+            🎤 Speak
+          </button>
+        </div>
+      }
     </div>
   )
 }
