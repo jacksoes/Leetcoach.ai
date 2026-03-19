@@ -8,11 +8,21 @@ export function App() {
   const [open, setOpen] = useState(false)
   const [selectingCoach, setSelectingCoach] = useState(false)
 
+  const [message, setMessage] = useState("");
+
 
   const [coach, setCoach] = useState(() => {
     const savedId = localStorage.getItem("leetcoach")
     return COACHES.find(c => c.id === savedId) || COACHES[0]
   })
+
+  const sendMessage = (value) => {
+    if (!value.trim()) return;
+    console.log(value);
+    setMessage(() => ""); // 🔥 force fresh state
+  };
+
+
 
 
   useEffect(() => {
@@ -57,15 +67,38 @@ export function App() {
       ) :
 
         <div className="coach-body">
-          <textarea
-            className="coach-input"
-            placeholder="Ask your AI coach for a hint..."
-          />
+          <form
+            className="coach-form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              sendMessage(message); // ✅ pass state
+            }}
+          >
+            <textarea
+              className="coach-input"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
 
-          <button onClick={requestCode} className="coach-voice">
+                  const value = e.currentTarget.value;
+                  if (!value.trim()) return;
+
+                  console.log(value);
+
+                  e.currentTarget.value = ""; // 🔥 instant DOM clear
+                  setMessage("");
+                }
+              }}
+            />
+          </form>
+
+          <button type="button" onClick={requestCode} className="coach-voice">
             🎤 Speak
           </button>
         </div>
+
       }
     </div>
   )

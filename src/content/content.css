@@ -122,3 +122,12 @@
   align-items: center;
   justify-content: center;
 }
+
+.coach-form{
+  width: 100%;
+}
+
+.coach-input{
+  width: 100%;
+  box-sizing: border-box; /* 🔥 key fix */
+}
