@@ -9,7 +9,40 @@ export function App() {
   const [selectingCoach, setSelectingCoach] = useState(false)
 
   const [message, setMessage] = useState("");
+  const [leetCodeCode, setLeetCodeCode] = useState<string | null>(null)
 
+  const [sessionId, setSessionId] = useState<string | null>(null)
+
+
+
+  async function createConversationSession() {
+  try {
+    const payload = {
+      user_id: "current-user-id", // replace with real user ID from auth
+      role: "system",             // or whatever role you want
+      content: "default personality", // could be coach-specific
+      title_slug: problemSlug,
+      model: "us.amazon.nova-lite-v1:0" // or whatever model
+    }
+
+    const res = await fetch("https://your-api.com/create_session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    })
+
+    const data = await res.json()
+    console.log("Created session:", data)
+
+    // store session ID in state
+    setSessionId(data.session_id)
+    return data.session_id
+  } catch (err) {
+    console.error("Error creating session:", err)
+    return null
+  }
+}
+  
 
   const [coach, setCoach] = useState(() => {
     const savedId = localStorage.getItem("leetcoach")
@@ -22,12 +55,55 @@ export function App() {
     setMessage(() => ""); // 🔥 force fresh state
   };
 
+  async function sendMessageToServer(code: string, messageValue: string) {
+  if (!sessionId) {
+    console.error("No session ID!")
+    return
+  }
+
+  try {
+    const res = await fetch("https://your-api.com/endpoint", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        session_id: sessionId,
+        code_snapshot: code,
+        user_input: messageValue,
+        coach: coach.id,
+        problem: problemSlug
+      })
+    })
+    const data = await res.json()
+    console.log("Server response:", data)
+  } catch (err) {
+    console.error(err)
+  }
+}
+
 
 
 
   useEffect(() => {
     localStorage.setItem("leetcoach", coach.id)
   }, [coach])
+
+  useEffect(() => {
+  function handleMessage(event: MessageEvent) {
+    if (event.source !== window) return
+    if (!event.data || event.data.type !== "LEETCODE_CODE") return
+
+    const code = event.data.code
+    console.log("Received LeetCode code:", code)
+
+    setLeetCodeCode(code) // ✅ store it in state
+  }
+
+  window.addEventListener("message", handleMessage)
+
+  return () => {
+    window.removeEventListener("message", handleMessage)
+  }
+}, [])
 
   function requestCode() {
     window.postMessage({ type: "GET_LEETCODE_CODE" }, "*")
@@ -47,7 +123,7 @@ export function App() {
         <div className="coach-avatar"
           onClick={() => setSelectingCoach(true)}
         >{coach.avatar}</div>
-        <div className="coach-title">LeetCoach {problemSlug}</div>
+        <div className="coach-title">LeetCoach</div>
 
         <button
           className="coach-close"
@@ -86,6 +162,7 @@ export function App() {
                   if (!value.trim()) return;
 
                   console.log(value);
+                  requestCode()
 
                   e.currentTarget.value = ""; // 🔥 instant DOM clear
                   setMessage("");
