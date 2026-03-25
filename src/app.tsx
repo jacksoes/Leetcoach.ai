@@ -25,7 +25,7 @@ export function App() {
       model: "us.amazon.nova-lite-v1:0" // or whatever model
     }
 
-    const res = await fetch("https://your-api.com/create_session", {
+    const res = await fetch("http://127.0.0.1:8000/start_chat/", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
@@ -62,7 +62,7 @@ export function App() {
   }
 
   try {
-    const res = await fetch("https://your-api.com/endpoint", {
+    const res = await fetch("http://127.0.0.1:8000/send_message/", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -173,6 +173,9 @@ export function App() {
 
           <button type="button" onClick={requestCode} className="coach-voice">
             🎤 Speak
+          </button>
+          <button type="button" onClick={createConversationSession} className="coach-voice">
+            Create convo
           </button>
         </div>
 
