@@ -4,6 +4,7 @@ import "./content/content.css"
 import { COACHES } from "./models/coaches"
 import { problemSlug } from "./content/content"
 
+import { useRef } from "preact/hooks";
 export function App() {
   const [open, setOpen] = useState(false)
   const [selectingCoach, setSelectingCoach] = useState(false)
@@ -12,6 +13,9 @@ export function App() {
   const [leetCodeCode, setLeetCodeCode] = useState<string | null>(null)
 
   const [sessionId, setSessionId] = useState<string | null>(null)
+
+  //const pendingMessageRef = useRef("");
+  const pendingRef = useRef(null);
 
 
 
@@ -93,8 +97,14 @@ export function App() {
     if (!event.data || event.data.type !== "LEETCODE_CODE") return
 
     const code = event.data.code
+    
+    //const messageValue = pendingMessageRef.current;
+    //const messageValue = pendingRef.current
+    const messageValue = pendingRef.current?.message;
     console.log("Received LeetCode code:", code)
-
+    console.log("RECEIVED MESSAGE DATA:", messageValue)
+    
+    sendMessageToServer(code, messageValue);
     setLeetCodeCode(code) // ✅ store it in state
   }
 
@@ -103,7 +113,7 @@ export function App() {
   return () => {
     window.removeEventListener("message", handleMessage)
   }
-}, [])
+}, [sessionId, coach.id])
 
   function requestCode() {
     window.postMessage({ type: "GET_LEETCODE_CODE" }, "*")
@@ -158,12 +168,24 @@ export function App() {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
 
+                  
+
+
                   const value = e.currentTarget.value;
                   if (!value.trim()) return;
+                  //setPendingMessage(value);
+                  //pendingMessageRef.current = value;
+                  //const value = e.currentTarget.value;
 
-                  console.log(value);
+                  pendingRef.current = {
+                    message: value
+                  };
+
+
                   requestCode()
-
+                  //const message_value = pendingMessageRef.current
+                  //console.log("code == ", leetCodeCode)
+                  //console.log("userinput == ", messageValue)
                   e.currentTarget.value = ""; // 🔥 instant DOM clear
                   setMessage("");
                 }
