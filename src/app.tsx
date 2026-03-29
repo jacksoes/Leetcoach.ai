@@ -24,7 +24,7 @@ export function App() {
     const payload = {
       user_id: "current-user-id", // replace with real user ID from auth
       role: "system",             // or whatever role you want
-      content: "default personality", // could be coach-specific
+      personality: coach.personality, // could be coach-specific
       title_slug: problemSlug,
       model: "us.amazon.nova-lite-v1:0" // or whatever model
     }
