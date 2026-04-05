@@ -13,7 +13,7 @@ export const COACHES: Coach[] = [
     id: "default",
     name: "Default Coach",
     type: "balanced",
-    personality: "Helpful and balanced. Gives hints without revealing full solutions.",
+    personality: "You are a helpful assistant that gives small hints.",
     avatar: "🤖"
   },
   {

@@ -1,119 +1,108 @@
-import { useEffect, useState } from "preact/hooks"
+import { useEffect, useState, useRef } from "preact/hooks"
 import CoachSelector from "./components/CoachSelector"
 import "./content/content.css"
 import { COACHES } from "./models/coaches"
 import { problemSlug } from "./content/content"
+import ReactMarkdown from "react-markdown";
 
-import { useRef } from "preact/hooks";
 export function App() {
   const [open, setOpen] = useState(false)
   const [selectingCoach, setSelectingCoach] = useState(false)
 
   const [message, setMessage] = useState("");
   const [leetCodeCode, setLeetCodeCode] = useState<string | null>(null)
+  const [serverResponse, setServerResponse] = useState<any>(null) // ✅ new state
 
   const [sessionId, setSessionId] = useState<string | null>(null)
 
-  //const pendingMessageRef = useRef("");
-  const pendingRef = useRef(null);
-
-
-
-  async function createConversationSession() {
-  try {
-    const payload = {
-      user_id: "current-user-id", // replace with real user ID from auth
-      role: "system",             // or whatever role you want
-      personality: coach.personality, // could be coach-specific
-      title_slug: problemSlug,
-      model: "us.amazon.nova-lite-v1:0" // or whatever model
-    }
-
-    const res = await fetch("http://127.0.0.1:8000/start_chat/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    })
-
-    const data = await res.json()
-    console.log("Created session:", data)
-
-    // store session ID in state
-    setSessionId(data.session_id)
-    return data.session_id
-  } catch (err) {
-    console.error("Error creating session:", err)
-    return null
-  }
-}
-  
+  const pendingRef = useRef<any>(null);
 
   const [coach, setCoach] = useState(() => {
     const savedId = localStorage.getItem("leetcoach")
     return COACHES.find(c => c.id === savedId) || COACHES[0]
   })
 
+  async function createConversationSession() {
+    try {
+      const payload = {
+        user_id: "current-user-id",
+        role: "system",
+        personality: coach.personality,
+        title_slug: problemSlug,
+        model: "us.amazon.nova-lite-v1:0"
+      }
+
+      const res = await fetch("http://127.0.0.1:8000/start_chat/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      })
+
+      const data = await res.json()
+      console.log("Created session:", data)
+      setSessionId(data.session_id)
+      return data.session_id
+    } catch (err) {
+      console.error("Error creating session:", err)
+      return null
+    }
+  }
+
   const sendMessage = (value) => {
     if (!value.trim()) return;
     console.log(value);
-    setMessage(() => ""); // 🔥 force fresh state
+    setMessage(() => "");
   };
 
   async function sendMessageToServer(code: string, messageValue: string) {
-  if (!sessionId) {
-    console.error("No session ID!")
-    return
-  }
+    if (!sessionId) {
+      console.error("No session ID!")
+      return
+    }
 
-  try {
-    const res = await fetch("http://127.0.0.1:8000/send_message/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        session_id: sessionId,
-        code_snapshot: code,
-        user_input: messageValue,
-        coach: coach.id,
-        problem: problemSlug
+    try {
+      const res = await fetch("http://127.0.0.1:8000/send_message/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          session_id: sessionId,
+          code_snapshot: code,
+          user_input: messageValue,
+          coach: coach.id,
+          problem: problemSlug
+        })
       })
-    })
-    const data = await res.json()
-    console.log("Server response:", data)
-  } catch (err) {
-    console.error(err)
+      const data = await res.json()
+      console.log("Server response:", data)
+      setServerResponse(data) // ✅ store response to render
+    } catch (err) {
+      console.error(err)
+    }
   }
-}
-
-
-
 
   useEffect(() => {
     localStorage.setItem("leetcoach", coach.id)
   }, [coach])
 
   useEffect(() => {
-  function handleMessage(event: MessageEvent) {
-    if (event.source !== window) return
-    if (!event.data || event.data.type !== "LEETCODE_CODE") return
+    function handleMessage(event: MessageEvent) {
+      if (event.source !== window) return
+      if (!event.data || event.data.type !== "LEETCODE_CODE") return
 
-    const code = event.data.code
-    
-    //const messageValue = pendingMessageRef.current;
-    //const messageValue = pendingRef.current
-    const messageValue = pendingRef.current?.message;
-    console.log("Received LeetCode code:", code)
-    console.log("RECEIVED MESSAGE DATA:", messageValue)
-    
-    sendMessageToServer(code, messageValue);
-    setLeetCodeCode(code) // ✅ store it in state
-  }
+      const code = event.data.code
+      const messageValue = pendingRef.current?.message
+      console.log("Received LeetCode code:", code)
+      console.log("RECEIVED MESSAGE DATA:", messageValue)
 
-  window.addEventListener("message", handleMessage)
+      sendMessageToServer(code, messageValue)
+      setLeetCodeCode(code)
+    }
 
-  return () => {
-    window.removeEventListener("message", handleMessage)
-  }
-}, [sessionId, coach.id])
+    window.addEventListener("message", handleMessage)
+    return () => {
+      window.removeEventListener("message", handleMessage)
+    }
+  }, [sessionId, coach.id])
 
   function requestCode() {
     window.postMessage({ type: "GET_LEETCODE_CODE" }, "*")
@@ -157,7 +146,7 @@ export function App() {
             className="coach-form"
             onSubmit={(e) => {
               e.preventDefault();
-              sendMessage(message); // ✅ pass state
+              sendMessage(message);
             }}
           >
             <textarea
@@ -167,26 +156,12 @@ export function App() {
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
-
-                  
-
-
                   const value = e.currentTarget.value;
                   if (!value.trim()) return;
-                  //setPendingMessage(value);
-                  //pendingMessageRef.current = value;
-                  //const value = e.currentTarget.value;
 
-                  pendingRef.current = {
-                    message: value
-                  };
-
-
+                  pendingRef.current = { message: value }
                   requestCode()
-                  //const message_value = pendingMessageRef.current
-                  //console.log("code == ", leetCodeCode)
-                  //console.log("userinput == ", messageValue)
-                  e.currentTarget.value = ""; // 🔥 instant DOM clear
+                  e.currentTarget.value = "";
                   setMessage("");
                 }
               }}
@@ -199,8 +174,18 @@ export function App() {
           <button type="button" onClick={createConversationSession} className="coach-voice">
             Create convo
           </button>
-        </div>
 
+          {/* ✅ Render server response */}
+          {serverResponse && (
+  <div className="coach-response-scroll">
+    <div className="coach-response-text">
+      <ReactMarkdown>
+      {serverResponse.reply}
+    </ReactMarkdown>
+    </div>
+  </div>
+)}
+        </div>
       }
     </div>
   )

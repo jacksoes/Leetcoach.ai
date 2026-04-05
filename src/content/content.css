@@ -131,3 +131,41 @@
   width: 100%;
   box-sizing: border-box; /* 🔥 key fix */
 }
+
+
+
+.coach-response-scroll {
+  max-height: 300px;
+  overflow-y: auto;      /* scroll vertically if content too tall */
+  overflow-x: hidden;    /* no horizontal scroll */
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #000000;
+  font-size: 14px;
+}
+
+.coach-response-text {
+  white-space: pre-wrap;   /* wrap lines instead of letting them run right */
+  word-break: break-word;  /* break long words so they fit inside box */
+}
+
+
+.coach-response-text pre {
+  max-width: 100%;
+  overflow-x: visible;        /* 👈 horizontal scroll for long code */
+  overflow-y: hidden;
+  padding: 10px;
+  border-radius: 8px;
+  background: #111;        /* darker than container */
+  white-space: pre;        /* 👈 don't wrap code */
+}
+
+
+
+.coach-response-text code {
+  font-family: monospace;
+  font-size: 0.85rem;
+}
+
+
